@@ -1,0 +1,84 @@
+{
+    "common": {
+        "name": "dm-demo",
+        "version": "0.0.1",
+        "news": {
+            "0.0.1": {
+                "en": "initial release",
+                "de": "Erstveröffentlichung",
+                "ru": "Начальная версия",
+                "pt": "lançamento inicial",
+                "nl": "Eerste uitgave",
+                "fr": "Première version",
+                "it": "Versione iniziale",
+                "es": "Versión inicial",
+                "pl": "Pierwsze wydanie",
+                "uk": "Початкова версія",
+                "zh-cn": "首次出版"
+            }
+        },
+        "titleLang": {
+            "en": "Device Management Demo",
+            "de": "Demo zur Geräteverwaltung",
+            "ru": "Демонстрация управления устройствами",
+            "pt": "Demonstração de gerenciamento de dispositivos",
+            "nl": "Demo Apparaatbeheer",
+            "fr": "Démo de gestion des appareils",
+            "it": "Demo sulla gestione dei dispositivi",
+            "es": "Demostración de administración de dispositivos",
+            "pl": "Demo zarządzania urządzeniami",
+            "uk": "Демонстрація керування пристроєм",
+            "zh-cn": "设备管理演示"
+        },
+        "desc": {
+            "en": "dm-demo",
+            "de": "dm-demo",
+            "ru": "дм-демо",
+            "pt": "demonstração dm",
+            "nl": "dm-demo",
+            "fr": "dm-démo",
+            "it": "dm-demo",
+            "es": "demostración dm",
+            "pl": "demo dm",
+            "uk": "dm-демо",
+            "zh-cn": "DM-演示"
+        },
+        "authors": ["UncleSamSwiss <samuel.weibel@gmail.com>"],
+        "keywords": ["template", "automation", "IoT", "integration"],
+        "licenseInformation": {
+            "type": "free",
+            "license": "MIT"
+        },
+        "platform": "Javascript/Node.js",
+        "icon": "dm-demo.png",
+        "enabled": true,
+        "extIcon": "https://raw.githubusercontent.com/UncleSamSwiss/ioBroker.dm-demo/main/admin/dm-demo.png",
+        "readme": "https://github.com/UncleSamSwiss/ioBroker.dm-demo/blob/main/README.md",
+        "loglevel": "info",
+        "tier": 3,
+        "mode": "daemon",
+        "type": "utility",
+        "compact": true,
+        "connectionType": "local",
+        "dataSource": "assumption",
+        "adminUI": {
+            "config": "json"
+        },
+        "dependencies": [
+            {
+                "js-controller": ">=6.0.11"
+            }
+        ],
+        "globalDependencies": [
+            {
+                "admin": ">=7.0.23"
+            }
+        ]
+    },
+    "native": {
+        "option1": true,
+        "option2": "42"
+    },
+    "objects": [],
+    "instanceObjects": []
+}

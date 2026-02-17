@@ -1,4 +1,9 @@
 {
-    "folders": [{ "path": "." }, { "path": "../dm-utils" }, { "path": "../dm-gui-components" }],
+    "folders": [
+        { "path": "." },
+        { "path": "../dm-utils" },
+        { "path": "../dm-gui-components" },
+        { "path": "../ioBroker.admin" },
+    ],
     "settings": {},
 }

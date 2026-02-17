@@ -13,7 +13,8 @@
 
     "mounts": [
         "source=${devcontainerId}-dm-utils,target=${containerWorkspaceFolder}/../dm-utils,type=volume",
-        "source=${devcontainerId}-dm-gui-components,target=${containerWorkspaceFolder}/../dm-gui-components,type=volume"
+        "source=${devcontainerId}-dm-gui-components,target=${containerWorkspaceFolder}/../dm-gui-components,type=volume",
+        "source=${devcontainerId}-admin,target=${containerWorkspaceFolder}/../ioBroker.admin,type=volume"
     ],
 
     // Use 'postCreateCommand' to run commands after the container is created.

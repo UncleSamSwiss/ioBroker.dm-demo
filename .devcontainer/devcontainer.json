@@ -11,8 +11,13 @@
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
     // "forwardPorts": [],
 
+    "mounts": [
+        "source=${devcontainerId}-dm-utils,target=${containerWorkspaceFolder}/../dm-utils,type=volume",
+        "source=${devcontainerId}-dm-gui-components,target=${containerWorkspaceFolder}/../dm-gui-components,type=volume"
+    ],
+
     // Use 'postCreateCommand' to run commands after the container is created.
-    "postCreateCommand": "npm install --global @iobroker/dev-server",
+    "postCreateCommand": "./.devcontainer/setup.sh",
 
     // Configure tool-specific properties.
     "customizations": {

@@ -1,0 +1,4 @@
+{
+    "folders": [{ "path": "." }, { "path": "../dm-utils" }, { "path": "../dm-gui-components" }],
+    "settings": {},
+}

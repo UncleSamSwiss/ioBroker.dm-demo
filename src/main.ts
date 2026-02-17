@@ -5,16 +5,21 @@
 // The adapter-core module gives you access to the core ioBroker functions
 // you need to create an adapter
 import * as utils from '@iobroker/adapter-core';
+import { DmDemoDeviceManagement } from './DmDemoDeviceManagement';
 
 // Load your modules here, e.g.:
 // import * as fs from 'fs';
 
-class DmDemo extends utils.Adapter {
+export class DmDemo extends utils.Adapter {
+    private readonly deviceManagement: DmDemoDeviceManagement;
+
     public constructor(options: Partial<utils.AdapterOptions> = {}) {
         super({
             ...options,
             name: 'dm-demo',
         });
+        this.deviceManagement = new DmDemoDeviceManagement(this);
+
         this.on('ready', this.onReady.bind(this));
         this.on('stateChange', this.onStateChange.bind(this));
         // this.on('objectChange', this.onObjectChange.bind(this));

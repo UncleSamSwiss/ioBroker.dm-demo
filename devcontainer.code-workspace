@@ -5,5 +5,14 @@
         { "path": "../dm-gui-components" },
         { "path": "../ioBroker.admin" },
     ],
-    "settings": {},
+    "settings": {
+        "eslint.enable": true,
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "[typescript]": {
+            "editor.codeActionsOnSave": {
+                "source.organizeImports": "always",
+            },
+        },
+    },
 }

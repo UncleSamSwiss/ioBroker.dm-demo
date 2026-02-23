@@ -1,22 +1,15 @@
 #!/bin/bash
 
+MAIN_DIR=$PWD
+
 # install dev-server
 echo "Installing dev-server..."
 npm install --global @iobroker/dev-server
 
 npm install
 
-if [ -d ".dev-server/default" ]; then
-    echo "dev-server already set up, skipping..."
-else
-    echo "Setting up dev-server..."
-    dev-server setup default
-fi
-
-MAIN_DIR=$PWD
-
 # clone dm-utils if needed
-cd ../dm-utils
+cd $MAIN_DIR/../dm-utils
 if [ -d ".git" ]; then
     echo "dm-utils already cloned, skipping..."
 else
@@ -29,7 +22,7 @@ fi
 npm link
 
 # clone dm-gui-components if needed
-cd ../dm-gui-components
+cd $MAIN_DIR/../dm-gui-components
 if [ -d ".git" ]; then
     echo "dm-gui-components already cloned, skipping..."
 else
@@ -43,7 +36,7 @@ fi
 npm link
 
 # clone ioBroker.admin if needed
-cd ../ioBroker.admin
+cd $MAIN_DIR/../ioBroker.admin
 if [ -d ".git" ]; then
     echo "ioBroker.admin already cloned, skipping..."
 else
@@ -54,16 +47,26 @@ else
     npm link @iobroker/dm-utils
 
     cd src-admin
-    npm link @iobroker/dm-utils
-    npm link @iobroker/dm-gui-components
+    npm link @iobroker/dm-utils @iobroker/dm-gui-components --force
     cd ..
 
     npm run build
 fi
 npm link
 
+# setup dev-server
+cd $MAIN_DIR
+if [ -d ".dev-server/default" ]; then
+    echo "dev-server already set up, skipping..."
+else
+    echo "Setting up dev-server..."
+    dev-server setup default
+
+    echo "Linking ioBroker.admin and dm-utils to dev-server..."
+    cd .dev-server/default
+    npm i ../../../ioBroker.admin
+    npm i ../../../dm-utils
+fi
+
 cd $MAIN_DIR
 npm link @iobroker/dm-utils
-
-cd .dev-server/default
-npm link iobroker.admin

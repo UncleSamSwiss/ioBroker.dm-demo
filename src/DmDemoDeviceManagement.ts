@@ -2,6 +2,16 @@ import { type DeviceLoadContext, DeviceManagement, type InstanceDetails } from '
 import { randomUUID } from 'node:crypto';
 import type { DmDemo } from './main';
 
+const deviceWithoutState = {
+    id: 'new-device',
+    name: 'Device without state',
+    connectionType: 'other',
+    status: {
+        connection: 'disconnected',
+    },
+    identifier: 'n/a',
+} as const;
+
 /**
  * Device management class for the dm-demo adapter.
  */
@@ -20,7 +30,7 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
                     type: 'text',
                 },
                 handler: async (context, options) => {
-                    await this.addDevice(options?.input ?? 'Unnamed Device');
+                    await this.addDevice(options?.value ?? 'Unnamed Device');
 
                     return { refresh: true };
                 },
@@ -37,7 +47,7 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
                     step: 1,
                 },
                 handler: async (context, options) => {
-                    const count = Number(options?.input || 0);
+                    const count = Number(options?.value || 0);
                     if (count == 0) {
                         await context.showMessage('Please enter a number greater than 0');
                         return { refresh: false };
@@ -71,29 +81,83 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
     }
 
     protected override async loadDevices(context: DeviceLoadContext<string>): Promise<void> {
+        this.log.debug(`Loading devices...`);
         const devices = await this.adapter.getDevicesAsync();
+        this.log.debug(`Found ${devices.length} devices`);
         context.setTotalDevices(devices.length + 1);
+        this.log.debug(`Adding devices, total count: ${devices.length + 1}`);
 
         for (const device of devices) {
             context.addDevice({
-                id: device._id,
+                id: device._id.replace(/^.+\./, ''),
                 identifier: device.native.uuid,
                 name: {
                     objectId: device._id,
                     property: 'common.name',
                 },
-
-                enabled: true,
+                connectionType: {
+                    stateId: `${device._id}.type`,
+                },
+                status: {
+                    connection: {
+                        stateId: `${device._id}.online`,
+                        mapping: {
+                            true: 'connected',
+                            false: 'disconnected',
+                        },
+                    },
+                },
+                actions: [
+                    {
+                        id: 'info',
+                        description: 'Show device info',
+                        icon: 'info',
+                        url: 'https://www.iobroker.dev/adapter/UncleSamSwiss/ioBroker.dm-demo',
+                    },
+                    {
+                        id: 'toggle-online',
+                        description: 'Toggle online status',
+                        icon: 'socket',
+                        handler: async deviceId => {
+                            const stateId = `${deviceId}.online`;
+                            const state = await this.adapter.getStateAsync(stateId);
+                            await this.adapter.setState(stateId, { val: !state?.val, ack: true });
+                            return { refresh: 'none' };
+                        },
+                    },
+                    {
+                        id: 'delete',
+                        description: 'Delete this device',
+                        icon: 'delete',
+                        confirmation: 'Are you sure you want to delete this device?',
+                        handler: async deviceId => {
+                            this.log.debug(`Deleting device ${deviceId}...`);
+                            await this.adapter.delObjectAsync(deviceId, { recursive: true });
+                            return { delete: deviceId };
+                        },
+                    },
+                ],
             });
+            this.log.debug(`Loaded device ${device._id}`);
 
             await delay(500); // Simulate some delay in loading devices
         }
 
         context.addDevice({
-            id: 'new-device',
-            name: 'Device without state',
-            enabled: false,
+            ...deviceWithoutState,
+            actions: [
+                {
+                    id: 'modify',
+                    description: 'Modify this device',
+                    icon: 'edit',
+                    handler: () => {
+                        return { update: { ...deviceWithoutState, name: 'Modified Device' } };
+                    },
+                },
+            ],
         });
+
+        this.log.debug('Finished loading devices');
     }
 
     private async addDevice(name?: string): Promise<void> {
@@ -104,11 +168,38 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
             common: {
                 name: name ?? `Device ${ts}`,
                 desc: 'Change the name to see it immediately reflect in the device list',
+                statusStates: {
+                    onlineId: `${this.adapter.namespace}.${id}.online`,
+                },
             },
             native: {
                 uuid: randomUUID(),
             },
         });
+
+        await this.adapter.extendObject(`${id}.online`, {
+            type: 'state',
+            common: {
+                name: 'Online',
+                type: 'boolean',
+                role: 'indicator.reachable',
+                read: true,
+                write: false,
+            },
+        });
+        await this.adapter.setState(`${id}.online`, { val: true, ack: true });
+
+        await this.adapter.extendObject(`${id}.type`, {
+            type: 'state',
+            common: {
+                name: 'Type',
+                type: 'string',
+                read: true,
+                write: true,
+                states: ['lan', 'wifi', 'bluetooth', 'thread', 'z-wave', 'zigbee', 'other'],
+            },
+        });
+        await this.adapter.setState(`${id}.type`, { val: 'other', ack: true });
     }
 }
 

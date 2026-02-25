@@ -160,6 +160,29 @@ class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
           handler: () => {
             return { update: { ...deviceWithoutState, name: "Modified Device" } };
           }
+        },
+        {
+          id: "long-action",
+          description: "Simulate a long action",
+          icon: "lamp",
+          handler: async (_deviceId, context2) => {
+            const progress = await context2.openProgress("Performing long action...", {
+              label: "Computing...",
+              indeterminate: true
+            });
+            for (let i = 1; i <= 100; i++) {
+              await delay(150);
+              if (i > 15) {
+                await progress.update({
+                  value: i,
+                  indeterminate: false,
+                  label: `Progress: ${i}%`
+                });
+              }
+            }
+            await progress.close();
+            return { refresh: "none" };
+          }
         }
       ]
     });

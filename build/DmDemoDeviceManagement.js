@@ -34,7 +34,8 @@ const deviceWithoutState = {
 };
 class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
   async getInstanceInfo() {
-    var _a;
+    var _a, _b;
+    const testVar = await this.adapter.getStateAsync("testVariable");
     const info = await super.getInstanceInfo();
     info.identifierLabel = "UUID";
     (_a = info.actions) != null ? _a : info.actions = [];
@@ -86,6 +87,15 @@ class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
           await progress.close();
           return { refresh: true };
         }
+      },
+      {
+        id: "test-var",
+        icon: "socket",
+        title: `Toggle Test Var: ${(_b = testVar == null ? void 0 : testVar.val) != null ? _b : "?"}`,
+        handler: async () => {
+          await this.adapter.setState("testVariable", { val: !(testVar == null ? void 0 : testVar.val), ack: true });
+          return { refresh: true };
+        }
       }
     );
     return info;
@@ -104,6 +114,7 @@ class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
           objectId: device._id,
           property: "common.name"
         },
+        hasDetails: true,
         connectionType: {
           stateId: `${device._id}.type`
         },
@@ -158,7 +169,14 @@ class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
           description: "Modify this device",
           icon: "edit",
           handler: () => {
-            return { update: { ...deviceWithoutState, name: "Modified Device" } };
+            return {
+              update: {
+                ...deviceWithoutState,
+                name: "Modified Device",
+                connectionType: "thread",
+                manufacturer: "Modified Manufacturer"
+              }
+            };
           }
         },
         {
@@ -187,6 +205,49 @@ class DmDemoDeviceManagement extends import_dm_utils.DeviceManagement {
       ]
     });
     this.log.debug("Finished loading devices");
+  }
+  async getDeviceDetails(id) {
+    await delay(300);
+    const obj = await this.adapter.getObjectAsync(id);
+    if (!obj) {
+      return null;
+    }
+    const online = await this.adapter.getStateAsync(`${id}.online`);
+    const type = await this.adapter.getStateAsync(`${id}.type`);
+    return {
+      id,
+      schema: {
+        type: "panel",
+        items: {
+          "obj.common.name": {
+            type: "text",
+            label: "Device Name",
+            readOnly: true
+          },
+          "obj.common.desc": {
+            type: "text",
+            label: "Description",
+            readOnly: true
+          },
+          "obj.native.uuid": {
+            type: "text",
+            label: "UUID",
+            readOnly: true
+          },
+          connType: {
+            type: "text",
+            label: "Connection Type",
+            readOnly: true
+          },
+          online: {
+            type: "checkbox",
+            label: "Online",
+            readOnly: true
+          }
+        }
+      },
+      data: { obj, connType: type == null ? void 0 : type.val, online: online == null ? void 0 : online.val }
+    };
   }
   async addDevice(name) {
     const ts = Date.now();

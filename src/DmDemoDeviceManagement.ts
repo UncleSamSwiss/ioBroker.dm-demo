@@ -1,4 +1,4 @@
-import { type DeviceLoadContext, DeviceManagement, type InstanceDetails } from '@iobroker/dm-utils';
+import { type DeviceDetails, type DeviceLoadContext, DeviceManagement, type InstanceDetails } from '@iobroker/dm-utils';
 import { randomUUID } from 'node:crypto';
 import type { DmDemo } from './main';
 
@@ -17,6 +17,7 @@ const deviceWithoutState = {
  */
 export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
     protected override async getInstanceInfo(): Promise<InstanceDetails> {
+        const testVar = await this.adapter.getStateAsync('testVariable');
         const info = await super.getInstanceInfo();
         info.identifierLabel = 'UUID';
         info.actions ??= [];
@@ -76,6 +77,15 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
                     return { refresh: true };
                 },
             },
+            {
+                id: 'test-var',
+                icon: 'socket',
+                title: `Toggle Test Var: ${testVar?.val ?? '?'}`,
+                handler: async () => {
+                    await this.adapter.setState('testVariable', { val: !testVar?.val, ack: true });
+                    return { refresh: true };
+                },
+            },
         );
         return info;
     }
@@ -95,6 +105,7 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
                     objectId: device._id,
                     property: 'common.name',
                 },
+                hasDetails: true,
                 connectionType: {
                     stateId: `${device._id}.type`,
                 },
@@ -151,7 +162,14 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
                     description: 'Modify this device',
                     icon: 'edit',
                     handler: () => {
-                        return { update: { ...deviceWithoutState, name: 'Modified Device' } };
+                        return {
+                            update: {
+                                ...deviceWithoutState,
+                                name: 'Modified Device',
+                                connectionType: 'thread',
+                                manufacturer: 'Modified Manufacturer',
+                            },
+                        };
                     },
                 },
                 {
@@ -182,6 +200,52 @@ export class DmDemoDeviceManagement extends DeviceManagement<DmDemo> {
         });
 
         this.log.debug('Finished loading devices');
+    }
+
+    protected override async getDeviceDetails(id: string): Promise<DeviceDetails<string> | null> {
+        await delay(300); // Simulate some delay in loading details
+        const obj = await this.adapter.getObjectAsync(id);
+        if (!obj) {
+            return null;
+        }
+
+        const online = await this.adapter.getStateAsync(`${id}.online`);
+        const type = await this.adapter.getStateAsync(`${id}.type`);
+
+        return {
+            id,
+            schema: {
+                type: 'panel',
+                items: {
+                    'obj.common.name': {
+                        type: 'text',
+                        label: 'Device Name',
+                        readOnly: true,
+                    },
+                    'obj.common.desc': {
+                        type: 'text',
+                        label: 'Description',
+                        readOnly: true,
+                    },
+                    'obj.native.uuid': {
+                        type: 'text',
+                        label: 'UUID',
+                        readOnly: true,
+                    },
+                    connType: {
+                        type: 'text',
+                        label: 'Connection Type',
+                        readOnly: true,
+                    },
+                    online: {
+                        type: 'checkbox',
+                        label: 'Online',
+                        readOnly: true,
+                    },
+                },
+            },
+            data: { obj, connType: type?.val, online: online?.val },
+        };
     }
 
     private async addDevice(name?: string): Promise<void> {
